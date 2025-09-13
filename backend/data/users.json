@@ -1,0 +1,32 @@
+[
+  {
+    "id": "1757713725780",
+    "firstName": "Rishika",
+    "lastName": "Agrawal",
+    "email": "rishika.23fe10cse00026@muj.manipal.edu",
+    "password": "$2b$10$hKdrePg4pn6cOPh3c/UCzelcCCNqDWP8a3T3tWVTvIkY/4TeuPbM2",
+    "university": "MANIPAL UNIVERSITY JAIPUR",
+    "major": "CSE",
+    "interests": [],
+    "experience": "beginner",
+    "createdAt": "2025-09-12T21:48:45.780Z",
+    "lastLogin": "2025-09-12T21:49:16.617Z"
+  },
+  {
+    "id": "demo-user",
+    "firstName": "Demo",
+    "lastName": "User",
+    "email": "demo@acmcofounder.com",
+    "password": "$2b$10$9ImvHcZMJbXUDjHTkBHvd.VBDmzMDFcUanFUgCiLbEGk1UR17JX3G",
+    "university": "Demo University",
+    "major": "Computer Science",
+    "interests": [
+      "Technology",
+      "AI/ML",
+      "Business"
+    ],
+    "experience": "intermediate",
+    "createdAt": "2025-09-12T22:06:33.903Z",
+    "lastLogin": "2025-09-12T22:06:33.903Z"
+  }
+]
