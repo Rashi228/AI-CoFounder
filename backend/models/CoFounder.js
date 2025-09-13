@@ -32,12 +32,29 @@ const coFounderSchema = new mongoose.Schema({
   }],
   availability: {
     type: String,
-    enum: ['full-time', 'part-time', 'contract', 'unavailable'],
-    default: 'part-time'
+    enum: ['Full-time', 'Part-time', 'Consulting', 'Contract', 'Unavailable'],
+    default: 'Part-time'
   },
   bio: {
     type: String,
     maxlength: 500
+  },
+  education: {
+    type: String,
+    trim: true
+  },
+  lookingFor: {
+    type: String,
+    trim: true
+  },
+  previousStartups: {
+    type: Number,
+    default: 0,
+    min: 0
+  },
+  image: {
+    type: String,
+    default: 'https://via.placeholder.com/150'
   },
   portfolio: {
     website: String,
@@ -70,7 +87,7 @@ const coFounderSchema = new mongoose.Schema({
   },
   rating: {
     type: Number,
-    min: 1,
+    min: 0,
     max: 5,
     default: 0
   },

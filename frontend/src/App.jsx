@@ -14,6 +14,7 @@ import FinancialProjections from './pages/FinancialProjections';
 import ValidationExperiments from './pages/ValidationExperiments';
 import CoFounderMatching from './pages/CoFounderMatching';
 import PitchDeck from './pages/PitchDeck';
+import SharedPitchDeck from './pages/SharedPitchDeck';
 import Dashboard from './pages/Dashboard';
 import Footer from './components/Footer';
 
@@ -68,6 +69,7 @@ function App() {
                 <PitchDeck />
               </ProtectedRoute>
             } />
+            <Route path="/pitch-deck/shared/:shareToken" element={<SharedPitchDeck />} />
             <Route path="/dashboard" element={
               <ProtectedRoute>
                 <Dashboard />

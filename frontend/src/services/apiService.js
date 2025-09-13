@@ -31,10 +31,14 @@ class ApiService {
   }
 
   // Idea and Business Plan APIs
-  async generateBusinessPlan(idea, apiProvider = 'gemini') {
+  async generateBusinessPlan(idea, apiProvider = 'gemini', additionalData = {}) {
     return this.request('/ideas/generate', {
       method: 'POST',
-      body: JSON.stringify({ idea, apiProvider }),
+      body: JSON.stringify({ 
+        idea, 
+        apiProvider,
+        ...additionalData
+      }),
     });
   }
 
@@ -159,6 +163,141 @@ class ApiService {
       method: 'POST',
       body: JSON.stringify({ email }),
     });
+  }
+
+  // Get form data (industries, stages, etc.)
+  async getFormData() {
+    return this.request('/ideas/form-data');
+  }
+
+  // Save business plan progress
+  async saveProgress(businessPlanId, section, data) {
+    return this.request('/ideas/save-progress', {
+      method: 'POST',
+      body: JSON.stringify({ businessPlanId, section, data }),
+    });
+  }
+
+  // Generate financial projections
+  async generateFinancialProjections(businessPlanId, projectionData) {
+    return this.request('/ideas/financial-projections', {
+      method: 'POST',
+      body: JSON.stringify({ businessPlanId, ...projectionData }),
+    });
+  }
+
+  // Generate market research
+  async generateMarketResearch(businessPlanId) {
+    return this.request('/ideas/market-research', {
+      method: 'POST',
+      body: JSON.stringify({ businessPlanId }),
+    });
+  }
+
+  // Export business plan
+  async exportBusinessPlan(businessPlanId, format = 'pdf') {
+    return this.request('/ideas/export', {
+      method: 'POST',
+      body: JSON.stringify({ businessPlanId, format }),
+    });
+  }
+
+  // Get dashboard data
+  async getDashboardData() {
+    return this.request('/ideas/dashboard');
+  }
+
+  // Co-founder matching methods
+  async getCofounders(filters = {}) {
+    const queryParams = new URLSearchParams(filters).toString();
+    return this.request(`/cofounders${queryParams ? `?${queryParams}` : ''}`);
+  }
+
+  async getCofounderById(id) {
+    return this.request(`/cofounders/${id}`);
+  }
+
+  async createCofounderProfile(profileData) {
+    return this.request('/cofounders', {
+      method: 'POST',
+      body: JSON.stringify(profileData),
+    });
+  }
+
+  async updateCofounderProfile(id, profileData) {
+    return this.request(`/cofounders/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(profileData),
+    });
+  }
+
+  async getMyCofounderProfile() {
+    return this.request('/cofounders/profile/me');
+  }
+
+  async findCofounderMatches(businessPlanId) {
+    return this.request('/cofounders/match', {
+      method: 'POST',
+      body: JSON.stringify({ businessPlanId }),
+    });
+  }
+
+  async saveCofounderProgress(businessPlanId, matches, savedProfiles) {
+    return this.request('/cofounders/save-progress', {
+      method: 'POST',
+      body: JSON.stringify({ businessPlanId, matches, savedProfiles }),
+    });
+  }
+
+  async saveCofounderProfile(profileId, businessPlanId) {
+    return this.request('/cofounders/save-profile', {
+      method: 'POST',
+      body: JSON.stringify({ profileId, businessPlanId }),
+    });
+  }
+
+  async removeCofounderProfile(profileId, businessPlanId) {
+    return this.request('/cofounders/remove-profile', {
+      method: 'DELETE',
+      body: JSON.stringify({ profileId, businessPlanId }),
+    });
+  }
+
+  async getSavedCofounderProfiles(businessPlanId) {
+    return this.request(`/cofounders/saved-profiles/${businessPlanId}`);
+  }
+
+  async scheduleCofounderCall(profileId, businessPlanId, preferredDate, preferredTime, message) {
+    return this.request('/cofounders/schedule-call', {
+      method: 'POST',
+      body: JSON.stringify({ profileId, businessPlanId, preferredDate, preferredTime, message }),
+    });
+  }
+
+  // Pitch Deck APIs
+  async generatePitchDeck(businessPlanId, style = 'modern', customMessage = '') {
+    return this.request('/ideas/pitch-deck', {
+      method: 'POST',
+      body: JSON.stringify({ businessPlanId, style, customMessage }),
+    });
+  }
+
+  async updatePitchDeckSlide(businessPlanId, slideId, content) {
+    return this.request(`/ideas/pitch-deck/${businessPlanId}/slide/${slideId}`, {
+      method: 'PUT',
+      body: JSON.stringify({ content }),
+    });
+  }
+
+  async sharePitchDeck(businessPlanId, permissions = 'view') {
+    return this.request(`/ideas/pitch-deck/${businessPlanId}/share`, {
+      method: 'POST',
+      body: JSON.stringify({ permissions }),
+    });
+  }
+
+  async getSharedPitchDeck(shareToken) {
+    return this.request(`/ideas/pitch-deck/shared/${shareToken}`);
   }
 
   // Health check

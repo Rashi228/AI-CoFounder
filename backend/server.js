@@ -1,15 +1,27 @@
+// Load environment variables FIRST before any other imports
+import dotenv from 'dotenv';
+dotenv.config();
+
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
-import dotenv from 'dotenv';
 import connectDB from './config/database.js';
 import ideaRoutes from './routes/ideaRoutes.js';
 import cofounderRoutes from './routes/cofounderRoutes.js';
 import validationRoutes from './routes/validationRoutes.js';
 import authRoutes from './routes/authRoutes.js';
 
-dotenv.config();
+// Debug environment variables
+console.log('🔍 Server Environment Debug:');
+console.log('  - NODE_ENV:', process.env.NODE_ENV);
+console.log('  - PORT:', process.env.PORT);
+console.log('  - GOOGLE_GEMINI_API_KEY exists:', !!process.env.GOOGLE_GEMINI_API_KEY);
+console.log('  - GOOGLE_GEMINI_API_KEY length:', process.env.GOOGLE_GEMINI_API_KEY ? process.env.GOOGLE_GEMINI_API_KEY.length : 0);
+console.log('  - MONGODB_URI exists:', !!process.env.MONGODB_URI);
+console.log('  - JWT_SECRET exists:', !!process.env.JWT_SECRET);
+console.log('  - Current working directory:', process.cwd());
+console.log('  - .env file path:', process.cwd() + '/.env');
 
 // Connect to MongoDB
 connectDB();

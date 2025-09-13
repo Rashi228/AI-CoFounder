@@ -1,3 +1,10 @@
+// TEMPORARILY COMMENTED OUT - Validation Experiments Page
+// This page has been temporarily disabled as requested
+// Original code preserved below for future restoration
+
+/*
+ORIGINAL VALIDATION EXPERIMENTS CODE - PRESERVED FOR FUTURE RESTORATION
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
@@ -324,7 +331,6 @@ const ValidationExperiments = () => {
             </p>
           </div>
 
-          {/* Navigation Tabs */}
           <ul className="nav nav-tabs mb-4" role="tablist">
             <li className="nav-item" role="presentation">
               <button
@@ -355,7 +361,6 @@ const ValidationExperiments = () => {
             </li>
           </ul>
 
-          {/* Tab Content */}
           <div className="tab-content">
             {activeTab === 'experiments' && (
               <div className="row">
@@ -368,7 +373,6 @@ const ValidationExperiments = () => {
             {activeTab === 'templates' && renderTemplates()}
           </div>
 
-          {/* Action Buttons */}
           <div className="text-center mt-5">
             <button
               className="btn btn-primary btn-lg me-3"
@@ -381,6 +385,45 @@ const ValidationExperiments = () => {
               <i className="fas fa-save me-2"></i>
               Save Plan
             </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default ValidationExperiments;
+*/
+
+// TEMPORARY PLACEHOLDER - Validation Experiments Page is temporarily disabled
+import React from 'react';
+import { useNavigate } from 'react-router-dom';
+
+const ValidationExperiments = () => {
+  const navigate = useNavigate();
+
+  return (
+    <div className="container py-5">
+      <div className="row justify-content-center">
+        <div className="col-lg-8 text-center">
+          <div className="card">
+            <div className="card-body py-5">
+              <i className="fas fa-tools fa-3x text-muted mb-4"></i>
+              <h2 className="mb-3">Validation Experiments</h2>
+              <p className="text-muted mb-4">
+                This page is temporarily disabled for maintenance and updates.
+              </p>
+              <p className="text-muted mb-4">
+                The Validation Experiments tool will be back soon with enhanced features!
+              </p>
+              <button
+                className="btn btn-primary btn-lg"
+                onClick={() => navigate('/cofounder-matching')}
+              >
+                <i className="fas fa-arrow-right me-2"></i>
+                Continue to Co-Founder Matching
+              </button>
+            </div>
           </div>
         </div>
       </div>

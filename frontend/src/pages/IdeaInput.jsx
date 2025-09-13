@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import apiService from '../services/apiService';
 
@@ -9,8 +9,43 @@ const IdeaInput = () => {
   const [inputMethod, setInputMethod] = useState('text');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [formData, setFormData] = useState({
+    industries: [],
+    stages: [],
+    challenges: []
+  });
+  const [additionalInfo, setAdditionalInfo] = useState({
+    industry: '',
+    stage: '',
+    challenge: ''
+  });
+  const [formDataLoading, setFormDataLoading] = useState(true);
   const fileInputRef = useRef(null);
   const navigate = useNavigate();
+
+  // Load form data from backend on component mount
+  useEffect(() => {
+    const loadFormData = async () => {
+      try {
+        const response = await apiService.getFormData();
+        if (response.success) {
+          setFormData(response.data);
+        }
+      } catch (error) {
+        console.error('Error loading form data:', error);
+        // Fallback to empty arrays if API fails
+        setFormData({
+          industries: [],
+          stages: [],
+          challenges: []
+        });
+      } finally {
+        setFormDataLoading(false);
+      }
+    };
+
+    loadFormData();
+  }, []);
 
   const handleVoiceRecording = () => {
     if (!isRecording) {
@@ -55,15 +90,31 @@ const IdeaInput = () => {
           return;
         }
 
-        // Call the API to generate business plan
-        const response = await apiService.generateBusinessPlan(ideaText);
+        // Prepare the complete idea data including additional information
+        const ideaData = {
+          idea: ideaText,
+          industry: additionalInfo.industry,
+          stage: additionalInfo.stage,
+          challenge: additionalInfo.challenge,
+          inputMethod: inputMethod,
+          hasImage: !!uploadedImage
+        };
+
+        // Call the API to generate business plan with complete data
+        const response = await apiService.generateBusinessPlan(ideaData.idea, 'gemini', ideaData);
         
         if (response.success) {
-          // Store the generated business plan data
-          localStorage.setItem('currentBusinessPlan', JSON.stringify(response.data));
-          localStorage.setItem('currentIdea', ideaText);
+          // Store the generated business plan data along with additional info
+          const completeData = {
+            ...response.data,
+            additionalInfo: ideaData
+          };
           
-          console.log('Business plan generated:', response.data);
+          localStorage.setItem('currentBusinessPlan', JSON.stringify(completeData));
+          localStorage.setItem('currentIdea', ideaText);
+          localStorage.setItem('additionalInfo', JSON.stringify(ideaData));
+          
+          console.log('Business plan generated:', completeData);
           navigate('/problem-refinement');
         } else {
           setError('Error generating business plan. Please try again.');
@@ -233,39 +284,76 @@ const IdeaInput = () => {
           <div className="card mt-4">
             <div className="card-body">
               <h5 className="card-title mb-3">Additional Information</h5>
-              <div className="row">
-                <div className="col-md-6 mb-3">
-                  <label className="form-label">What industry is this in?</label>
-                  <select className="form-select">
-                    <option value="">Select an industry</option>
-                    <option value="technology">Technology</option>
-                    <option value="healthcare">Healthcare</option>
-                    <option value="education">Education</option>
-                    <option value="finance">Finance</option>
-                    <option value="ecommerce">E-commerce</option>
-                    <option value="sustainability">Sustainability</option>
-                    <option value="other">Other</option>
-                  </select>
+              {formDataLoading ? (
+                <div className="text-center py-3">
+                  <div className="spinner-border text-primary" role="status">
+                    <span className="visually-hidden">Loading...</span>
+                  </div>
+                  <p className="mt-2 text-muted">Loading form options...</p>
                 </div>
-                <div className="col-md-6 mb-3">
-                  <label className="form-label">What stage is your idea in?</label>
-                  <select className="form-select">
-                    <option value="">Select stage</option>
-                    <option value="concept">Just an idea</option>
-                    <option value="prototype">Have a prototype</option>
-                    <option value="mvp">Have an MVP</option>
-                    <option value="early-users">Have early users</option>
-                    <option value="revenue">Generating revenue</option>
-                  </select>
+              ) : (
+                <div className="row">
+                  <div className="col-md-6 mb-3">
+                    <label className="form-label">What industry is this in?</label>
+                    <select 
+                      className="form-select"
+                      value={additionalInfo.industry}
+                      onChange={(e) => setAdditionalInfo(prev => ({ ...prev, industry: e.target.value }))}
+                    >
+                      <option value="">Select an industry</option>
+                      {formData.industries.map(industry => (
+                        <option key={industry.value} value={industry.value}>
+                          {industry.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="col-md-6 mb-3">
+                    <label className="form-label">What stage is your idea in?</label>
+                    <select 
+                      className="form-select"
+                      value={additionalInfo.stage}
+                      onChange={(e) => setAdditionalInfo(prev => ({ ...prev, stage: e.target.value }))}
+                    >
+                      <option value="">Select stage</option>
+                      {formData.stages.map(stage => (
+                        <option key={stage.value} value={stage.value}>
+                          {stage.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
                 </div>
-              </div>
+              )}
               <div className="mb-3">
                 <label className="form-label">What's your biggest challenge right now?</label>
                 <textarea
                   className="form-control"
                   rows="3"
                   placeholder="e.g., finding co-founders, market validation, funding, technical development..."
+                  value={additionalInfo.challenge}
+                  onChange={(e) => setAdditionalInfo(prev => ({ ...prev, challenge: e.target.value }))}
                 />
+                {formData.challenges.length > 0 && (
+                  <div className="mt-2">
+                    <small className="text-muted">Common challenges:</small>
+                    <div className="mt-1">
+                      {formData.challenges.map((challenge, index) => (
+                        <span 
+                          key={index}
+                          className="badge bg-light text-dark me-1 mb-1 cursor-pointer"
+                          style={{ cursor: 'pointer' }}
+                          onClick={() => setAdditionalInfo(prev => ({ 
+                            ...prev, 
+                            challenge: prev.challenge ? `${prev.challenge}, ${challenge}` : challenge 
+                          }))}
+                        >
+                          {challenge}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           </div>

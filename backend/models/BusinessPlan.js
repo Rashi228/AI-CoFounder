@@ -66,6 +66,24 @@ const businessPlanSchema = new mongoose.Schema({
     revenuePerUser: Number,
     breakEvenMonths: Number
   },
+  pitchDeck: {
+    id: String,
+    title: String,
+    style: String,
+    slides: [{
+      id: String,
+      title: String,
+      content: mongoose.Schema.Types.Mixed
+    }],
+    generatedAt: Date,
+    lastModified: Date,
+    version: String,
+    metadata: mongoose.Schema.Types.Mixed,
+    shareToken: String,
+    sharePermissions: String,
+    sharedAt: Date
+  },
+  pitchDeckGeneratedAt: Date,
   status: {
     type: String,
     enum: ['draft', 'in_progress', 'completed', 'archived'],

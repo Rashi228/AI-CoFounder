@@ -1,77 +1,70 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import apiService from '../services/apiService';
 
 const Dashboard = () => {
   const [activeTab, setActiveTab] = useState('overview');
+  const [dashboardData, setDashboardData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
   const navigate = useNavigate();
 
-  const stats = {
-    ideasSubmitted: 1,
-    problemRefined: true,
-    marketResearch: 85,
-    businessModel: 'Freemium',
-    experiments: 3,
-    cofounders: 2,
-    pitchDeck: true
+  useEffect(() => {
+    fetchDashboardData();
+  }, []);
+
+  const fetchDashboardData = async () => {
+    try {
+      setLoading(true);
+      const response = await apiService.getDashboardData();
+      if (response.success) {
+        setDashboardData(response.data);
+      } else {
+        setError('Failed to load dashboard data');
+      }
+    } catch (error) {
+      console.error('Error fetching dashboard data:', error);
+      setError('Failed to load dashboard data. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const recentActivity = [
-    {
-      id: 1,
-      type: 'idea',
-      title: 'StudySync - AI-Powered Student Time Management',
-      date: '2 hours ago',
-      status: 'completed'
-    },
-    {
-      id: 2,
-      type: 'research',
-      title: 'Market Research Analysis Complete',
-      date: '1 day ago',
-      status: 'completed'
-    },
-    {
-      id: 3,
-      type: 'experiment',
-      title: 'Landing Page Test Started',
-      date: '2 days ago',
-      status: 'in-progress'
-    },
-    {
-      id: 4,
-      type: 'cofounder',
-      title: 'New Co-Founder Match: Sarah Chen',
-      date: '3 days ago',
-      status: 'pending'
-    }
-  ];
+  if (loading) {
+    return (
+      <div className="container py-5">
+        <div className="row justify-content-center">
+          <div className="col-lg-10 text-center">
+            <div className="spinner-border text-primary mb-3" role="status">
+              <span className="visually-hidden">Loading...</span>
+            </div>
+            <h4>Loading your dashboard...</h4>
+            <p className="text-muted">Fetching your startup journey data</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
-  const nextSteps = [
-    {
-      id: 1,
-      title: 'Complete Customer Interviews',
-      description: 'Conduct 20+ interviews with target students',
-      priority: 'high',
-      dueDate: 'In 1 week',
-      progress: 30
-    },
-    {
-      id: 2,
-      title: 'Build MVP Prototype',
-      description: 'Create basic version of StudySync app',
-      priority: 'medium',
-      dueDate: 'In 2 weeks',
-      progress: 0
-    },
-    {
-      id: 3,
-      title: 'Pitch Deck Review',
-      description: 'Review and refine your pitch deck',
-      priority: 'low',
-      dueDate: 'In 3 days',
-      progress: 80
-    }
-  ];
+  if (error) {
+    return (
+      <div className="container py-5">
+        <div className="row justify-content-center">
+          <div className="col-lg-10 text-center">
+            <div className="alert alert-danger" role="alert">
+              <h4>Error Loading Dashboard</h4>
+              <p>{error}</p>
+              <button className="btn btn-primary" onClick={fetchDashboardData}>
+                Try Again
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  const { stats, recentActivity, nextSteps, currentBusinessPlan, totalBusinessPlans } = dashboardData || {};
 
   const renderOverview = () => (
     <div className="row">
@@ -87,7 +80,7 @@ const Dashboard = () => {
               <div className="col-md-3 mb-3">
                 <div className="text-center">
                   <div className={`rounded-circle d-inline-flex align-items-center justify-content-center ${
-                    stats.ideasSubmitted > 0 ? 'bg-success text-white' : 'bg-light text-muted'
+                    stats?.ideasSubmitted > 0 ? 'bg-success text-white' : 'bg-light text-muted'
                   }`} style={{ width: '60px', height: '60px' }}>
                     <i className="fas fa-lightbulb fa-lg"></i>
                   </div>
@@ -101,7 +94,7 @@ const Dashboard = () => {
               <div className="col-md-3 mb-3">
                 <div className="text-center">
                   <div className={`rounded-circle d-inline-flex align-items-center justify-content-center ${
-                    stats.problemRefined ? 'bg-success text-white' : 'bg-light text-muted'
+                    stats?.problemRefined > 0 ? 'bg-success text-white' : 'bg-light text-muted'
                   }`} style={{ width: '60px', height: '60px' }}>
                     <i className="fas fa-cogs fa-lg"></i>
                   </div>
@@ -115,7 +108,7 @@ const Dashboard = () => {
               <div className="col-md-3 mb-3">
                 <div className="text-center">
                   <div className={`rounded-circle d-inline-flex align-items-center justify-content-center ${
-                    stats.marketResearch > 0 ? 'bg-success text-white' : 'bg-light text-muted'
+                    stats?.marketResearch > 0 ? 'bg-success text-white' : 'bg-light text-muted'
                   }`} style={{ width: '60px', height: '60px' }}>
                     <i className="fas fa-chart-bar fa-lg"></i>
                   </div>
@@ -129,7 +122,7 @@ const Dashboard = () => {
               <div className="col-md-3 mb-3">
                 <div className="text-center">
                   <div className={`rounded-circle d-inline-flex align-items-center justify-content-center ${
-                    stats.pitchDeck ? 'bg-success text-white' : 'bg-light text-muted'
+                    stats?.pitchDeck > 0 ? 'bg-success text-white' : 'bg-light text-muted'
                   }`} style={{ width: '60px', height: '60px' }}>
                     <i className="fas fa-presentation fa-lg"></i>
                   </div>
@@ -150,35 +143,48 @@ const Dashboard = () => {
               <i className="fas fa-clock me-2"></i>
               Recent Activity
             </h5>
-            <div className="list-group list-group-flush">
-              {recentActivity.map((activity) => (
-                <div key={activity.id} className="list-group-item d-flex justify-content-between align-items-center">
-                  <div className="d-flex align-items-center">
-                    <div className={`me-3 ${
-                      activity.type === 'idea' ? 'text-warning' :
-                      activity.type === 'research' ? 'text-info' :
-                      activity.type === 'experiment' ? 'text-primary' : 'text-success'
+            {recentActivity && recentActivity.length > 0 ? (
+              <div className="list-group list-group-flush">
+                {recentActivity.map((activity) => (
+                  <div key={activity.id} className="list-group-item d-flex justify-content-between align-items-center">
+                    <div className="d-flex align-items-center">
+                      <div className={`me-3 ${
+                        activity.type === 'idea' ? 'text-warning' :
+                        activity.type === 'research' ? 'text-info' :
+                        activity.type === 'experiment' ? 'text-primary' : 'text-success'
+                      }`}>
+                        <i className={`fas fa-${
+                          activity.type === 'idea' ? 'lightbulb' :
+                          activity.type === 'research' ? 'chart-bar' :
+                          activity.type === 'experiment' ? 'flask' : 'users'
+                        }`}></i>
+                      </div>
+                      <div>
+                        <div className="fw-bold">{activity.title}</div>
+                        <small className="text-muted">{activity.date}</small>
+                      </div>
+                    </div>
+                    <span className={`badge ${
+                      activity.status === 'completed' ? 'bg-success' :
+                      activity.status === 'in-progress' ? 'bg-warning' : 'bg-secondary'
                     }`}>
-                      <i className={`fas fa-${
-                        activity.type === 'idea' ? 'lightbulb' :
-                        activity.type === 'research' ? 'chart-bar' :
-                        activity.type === 'experiment' ? 'flask' : 'users'
-                      }`}></i>
-                    </div>
-                    <div>
-                      <div className="fw-bold">{activity.title}</div>
-                      <small className="text-muted">{activity.date}</small>
-                    </div>
+                      {activity.status}
+                    </span>
                   </div>
-                  <span className={`badge ${
-                    activity.status === 'completed' ? 'bg-success' :
-                    activity.status === 'in-progress' ? 'bg-warning' : 'bg-secondary'
-                  }`}>
-                    {activity.status}
-                  </span>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-4">
+                <i className="fas fa-clock fa-3x text-muted mb-3"></i>
+                <p className="text-muted">No recent activity. Start by submitting your first idea!</p>
+                <button 
+                  className="btn btn-primary"
+                  onClick={() => navigate('/idea-input')}
+                >
+                  Submit Your First Idea
+                </button>
+              </div>
+            )}
           </div>
         </div>
 
@@ -189,35 +195,42 @@ const Dashboard = () => {
               <i className="fas fa-tasks me-2"></i>
               Next Steps
             </h5>
-            {nextSteps.map((step) => (
-              <div key={step.id} className="card mb-3">
-                <div className="card-body">
-                  <div className="d-flex justify-content-between align-items-start mb-2">
-                    <h6 className="card-title mb-0">{step.title}</h6>
-                    <span className={`badge ${
-                      step.priority === 'high' ? 'bg-danger' :
-                      step.priority === 'medium' ? 'bg-warning' : 'bg-info'
-                    }`}>
-                      {step.priority}
-                    </span>
-                  </div>
-                  <p className="card-text text-muted small">{step.description}</p>
-                  <div className="d-flex justify-content-between align-items-center">
-                    <small className="text-muted">Due: {step.dueDate}</small>
-                    <div className="d-flex align-items-center">
-                      <div className="progress me-2" style={{ width: '100px', height: '6px' }}>
-                        <div
-                          className="progress-bar"
-                          role="progressbar"
-                          style={{ width: `${step.progress}%` }}
-                        ></div>
+            {nextSteps && nextSteps.length > 0 ? (
+              nextSteps.map((step) => (
+                <div key={step.id} className="card mb-3">
+                  <div className="card-body">
+                    <div className="d-flex justify-content-between align-items-start mb-2">
+                      <h6 className="card-title mb-0">{step.title}</h6>
+                      <span className={`badge ${
+                        step.priority === 'high' ? 'bg-danger' :
+                        step.priority === 'medium' ? 'bg-warning' : 'bg-info'
+                      }`}>
+                        {step.priority}
+                      </span>
+                    </div>
+                    <p className="card-text text-muted small">{step.description}</p>
+                    <div className="d-flex justify-content-between align-items-center">
+                      <small className="text-muted">Due: {step.dueDate}</small>
+                      <div className="d-flex align-items-center">
+                        <div className="progress me-2" style={{ width: '100px', height: '6px' }}>
+                          <div
+                            className="progress-bar"
+                            role="progressbar"
+                            style={{ width: `${step.progress}%` }}
+                          ></div>
+                        </div>
+                        <small className="text-muted">{step.progress}%</small>
                       </div>
-                      <small className="text-muted">{step.progress}%</small>
                     </div>
                   </div>
                 </div>
+              ))
+            ) : (
+              <div className="text-center py-4">
+                <i className="fas fa-check-circle fa-3x text-success mb-3"></i>
+                <p className="text-muted">All steps completed! Great job on your startup journey!</p>
               </div>
-            ))}
+            )}
           </div>
         </div>
       </div>
@@ -232,19 +245,19 @@ const Dashboard = () => {
             </h5>
             <div className="row text-center">
               <div className="col-6 mb-3">
-                <div className="stat-number text-primary">{stats.ideasSubmitted}</div>
+                <div className="stat-number text-primary">{stats?.ideasSubmitted || 0}</div>
                 <p className="text-muted small">Ideas Submitted</p>
               </div>
               <div className="col-6 mb-3">
-                <div className="stat-number text-success">{stats.experiments}</div>
+                <div className="stat-number text-success">{stats?.experiments || 0}</div>
                 <p className="text-muted small">Experiments</p>
               </div>
               <div className="col-6 mb-3">
-                <div className="stat-number text-warning">{stats.cofounders}</div>
+                <div className="stat-number text-warning">{stats?.cofounders || 0}</div>
                 <p className="text-muted small">Co-Founders</p>
               </div>
               <div className="col-6 mb-3">
-                <div className="stat-number text-info">{stats.marketResearch}%</div>
+                <div className="stat-number text-info">{currentBusinessPlan?.marketScore || 0}/10</div>
                 <p className="text-muted small">Market Score</p>
               </div>
             </div>
@@ -299,13 +312,13 @@ const Dashboard = () => {
               Business Model
             </h5>
             <div className="text-center">
-              <div className="stat-number text-primary">{stats.businessModel}</div>
+              <div className="stat-number text-primary">{currentBusinessPlan?.businessModel || 'TBD'}</div>
               <p className="text-muted">Current Model</p>
               <button 
                 className="btn btn-outline-primary btn-sm"
                 onClick={() => navigate('/business-models')}
               >
-                Change Model
+                {currentBusinessPlan?.businessModel ? 'Change Model' : 'Define Model'}
               </button>
             </div>
           </div>
@@ -320,7 +333,7 @@ const Dashboard = () => {
         <div className="card">
           <div className="card-body">
             <div className="d-flex justify-content-between align-items-center mb-4">
-              <h5 className="card-title mb-0">Your Startup Ideas</h5>
+              <h5 className="card-title mb-0">Your Startup Ideas ({totalBusinessPlans || 0})</h5>
               <button 
                 className="btn btn-primary"
                 onClick={() => navigate('/idea-input')}
@@ -330,27 +343,64 @@ const Dashboard = () => {
               </button>
             </div>
             
-            <div className="row">
-              <div className="col-lg-6 mb-4">
-                <div className="card border-primary">
-                  <div className="card-body">
-                    <h6 className="card-title">StudySync - AI-Powered Student Time Management</h6>
-                    <p className="card-text text-muted">
-                      AI-powered platform that helps students optimize their schedules and manage academic workload.
-                    </p>
-                    <div className="d-flex justify-content-between align-items-center">
-                      <div>
-                        <span className="badge bg-success me-2">Active</span>
-                        <span className="badge bg-primary">Freemium</span>
+            {currentBusinessPlan ? (
+              <div className="row">
+                <div className="col-lg-6 mb-4">
+                  <div className="card border-primary">
+                    <div className="card-body">
+                      <h6 className="card-title">{currentBusinessPlan.idea}</h6>
+                      <p className="card-text text-muted">
+                        {currentBusinessPlan.idea} - Your latest startup idea
+                      </p>
+                      <div className="d-flex justify-content-between align-items-center">
+                        <div>
+                          <span className={`badge me-2 ${
+                            currentBusinessPlan.status === 'completed' ? 'bg-success' : 'bg-warning'
+                          }`}>
+                            {currentBusinessPlan.status || 'In Progress'}
+                          </span>
+                          <span className="badge bg-primary">
+                            {currentBusinessPlan.businessModel || 'TBD'}
+                          </span>
+                        </div>
+                        <button 
+                          className="btn btn-outline-primary btn-sm"
+                          onClick={() => navigate('/problem-refinement')}
+                        >
+                          View Details
+                        </button>
                       </div>
-                      <button className="btn btn-outline-primary btn-sm">
-                        View Details
-                      </button>
+                      <div className="mt-3">
+                        <div className="d-flex justify-content-between">
+                          <small className="text-muted">Progress</small>
+                          <small className="text-muted">{currentBusinessPlan.progress || 0}%</small>
+                        </div>
+                        <div className="progress" style={{ height: '6px' }}>
+                          <div
+                            className="progress-bar"
+                            role="progressbar"
+                            style={{ width: `${currentBusinessPlan.progress || 0}%` }}
+                          ></div>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>
               </div>
-            </div>
+            ) : (
+              <div className="text-center py-5">
+                <i className="fas fa-lightbulb fa-3x text-muted mb-3"></i>
+                <h5>No Ideas Yet</h5>
+                <p className="text-muted">Start your startup journey by submitting your first business idea!</p>
+                <button 
+                  className="btn btn-primary"
+                  onClick={() => navigate('/idea-input')}
+                >
+                  <i className="fas fa-plus me-2"></i>
+                  Submit Your First Idea
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -364,10 +414,10 @@ const Dashboard = () => {
           <div className="card-body">
             <h5 className="card-title">Market Research Score</h5>
             <div className="text-center">
-              <div className="stat-number text-primary">85%</div>
+              <div className="stat-number text-primary">{currentBusinessPlan?.marketScore || 0}/10</div>
               <p className="text-muted">Overall Market Score</p>
               <div className="progress">
-                <div className="progress-bar" style={{ width: '85%' }}></div>
+                <div className="progress-bar" style={{ width: `${(currentBusinessPlan?.marketScore || 0) * 10}%` }}></div>
               </div>
             </div>
           </div>
@@ -379,10 +429,40 @@ const Dashboard = () => {
           <div className="card-body">
             <h5 className="card-title">Validation Progress</h5>
             <div className="text-center">
-              <div className="stat-number text-success">60%</div>
+              <div className="stat-number text-success">{stats?.experiments || 0}</div>
               <p className="text-muted">Experiments Completed</p>
               <div className="progress">
-                <div className="progress-bar bg-success" style={{ width: '60%' }}></div>
+                <div className="progress-bar bg-success" style={{ width: `${Math.min((stats?.experiments || 0) * 20, 100)}%` }}></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div className="col-lg-6 mb-4">
+        <div className="card">
+          <div className="card-body">
+            <h5 className="card-title">Overall Progress</h5>
+            <div className="text-center">
+              <div className="stat-number text-info">{currentBusinessPlan?.progress || 0}%</div>
+              <p className="text-muted">Startup Journey Completion</p>
+              <div className="progress">
+                <div className="progress-bar bg-info" style={{ width: `${currentBusinessPlan?.progress || 0}%` }}></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div className="col-lg-6 mb-4">
+        <div className="card">
+          <div className="card-body">
+            <h5 className="card-title">Business Plans</h5>
+            <div className="text-center">
+              <div className="stat-number text-warning">{totalBusinessPlans || 0}</div>
+              <p className="text-muted">Total Ideas Submitted</p>
+              <div className="progress">
+                <div className="progress-bar bg-warning" style={{ width: `${Math.min((totalBusinessPlans || 0) * 25, 100)}%` }}></div>
               </div>
             </div>
           </div>
@@ -405,7 +485,18 @@ const Dashboard = () => {
               </p>
             </div>
             <div>
-              <button className="btn btn-primary btn-lg">
+              <button 
+                className="btn btn-outline-primary btn-lg me-2"
+                onClick={fetchDashboardData}
+                disabled={loading}
+              >
+                <i className={`fas fa-sync-alt me-2 ${loading ? 'fa-spin' : ''}`}></i>
+                Refresh
+              </button>
+              <button 
+                className="btn btn-primary btn-lg"
+                onClick={() => navigate('/idea-input')}
+              >
                 <i className="fas fa-plus me-2"></i>
                 New Project
               </button>

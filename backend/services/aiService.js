@@ -1,27 +1,64 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
-import axios from 'axios';
 
 class AIService {
   constructor() {
+    this.geminiAPI = null;
+    this.initialized = false;
+  }
+
+  initialize() {
+    if (this.initialized) return;
+    
+    // Deep debugging for API key loading
+    console.log('🔍 AIService Initialize Debug:');
+    console.log('  - process.env keys:', Object.keys(process.env).filter(key => key.includes('GEMINI') || key.includes('GOOGLE')));
+    console.log('  - GOOGLE_GEMINI_API_KEY exists:', !!process.env.GOOGLE_GEMINI_API_KEY);
+    console.log('  - GOOGLE_GEMINI_API_KEY value:', process.env.GOOGLE_GEMINI_API_KEY ? `${process.env.GOOGLE_GEMINI_API_KEY.substring(0, 10)}...` : 'undefined');
+    console.log('  - GOOGLE_GEMINI_API_KEY length:', process.env.GOOGLE_GEMINI_API_KEY ? process.env.GOOGLE_GEMINI_API_KEY.length : 0);
+    console.log('  - NODE_ENV:', process.env.NODE_ENV);
+    console.log('  - Current working directory:', process.cwd());
+    
     this.geminiAPI = process.env.GOOGLE_GEMINI_API_KEY ? 
       new GoogleGenerativeAI(process.env.GOOGLE_GEMINI_API_KEY) : null;
-    this.openaiAPIKey = process.env.OPENAI_API_KEY;
+    
+    // Log API key status
+    if (this.geminiAPI) {
+      console.log('✅ Google Gemini API key configured - AI generation enabled');
+      console.log('  - Gemini API instance created successfully');
+    } else {
+      console.log('⚠️  No Gemini API key configured - using enhanced mock data');
+      console.log('  - Reason: process.env.GOOGLE_GEMINI_API_KEY is falsy');
+    }
+    
+    this.initialized = true;
   }
 
   async generateBusinessPlan(idea, apiProvider = 'gemini') {
+    // Initialize the service (lazy loading)
+    this.initialize();
+    
     const prompt = this.createBusinessPlanPrompt(idea);
     
+    // Debug current state
+    console.log('🔍 generateBusinessPlan Debug:');
+    console.log('  - this.geminiAPI exists:', !!this.geminiAPI);
+    console.log('  - process.env.GOOGLE_GEMINI_API_KEY exists:', !!process.env.GOOGLE_GEMINI_API_KEY);
+    console.log('  - API Provider requested:', apiProvider);
+    
     try {
-      if (apiProvider === 'gemini' && this.geminiAPI) {
+      if (this.geminiAPI) {
+        console.log('✅ Using Gemini API for business plan generation');
         return await this.callGeminiAPI(prompt);
-      } else if (apiProvider === 'openai' && this.openaiAPIKey) {
-        return await this.callOpenAIAPI(prompt);
       } else {
-        console.log('No AI API key configured, returning mock data for demonstration');
+        console.log('⚠️  No Gemini API key configured, returning enhanced mock data for demonstration');
+        console.log('📋 To get real AI-generated content, configure GOOGLE_GEMINI_API_KEY in your .env file');
+        console.log('🔗 See API_SETUP_GUIDE.md for setup instructions');
+        console.log('  - Current API key status:', process.env.GOOGLE_GEMINI_API_KEY ? 'Present but not working' : 'Missing');
         return this.getMockBusinessPlan(idea);
       }
     } catch (error) {
       console.error('AI Service Error:', error);
+      console.log('  - Error details:', error.message);
       // Return mock data if API fails
       return this.getMockBusinessPlan(idea);
     }
@@ -64,39 +101,11 @@ The JSON object should have these exact keys:
     }
   }
 
-  async callOpenAIAPI(prompt) {
-    try {
-      const response = await axios.post('https://api.openai.com/v1/chat/completions', {
-        model: 'gpt-4',
-        messages: [
-          {
-            role: 'system',
-            content: 'You are an expert startup consultant. Always respond with valid JSON only.'
-          },
-          {
-            role: 'user',
-            content: prompt
-          }
-        ],
-        temperature: 0.7,
-        max_tokens: 4000
-      }, {
-        headers: {
-          'Authorization': `Bearer ${this.openaiAPIKey}`,
-          'Content-Type': 'application/json'
-        }
-      });
-
-      const text = response.data.choices[0].message.content;
-      const cleanedText = text.replace(/^```json\s*|```\s*$/g, '');
-      return JSON.parse(cleanedText);
-    } catch (error) {
-      console.error('OpenAI API Error:', error);
-      throw error;
-    }
-  }
 
   async generateValidationContent(idea, validationType) {
+    // Initialize the service (lazy loading)
+    this.initialize();
+    
     const prompts = {
       survey: `Generate 5 insightful survey questions to validate the startup idea: "${idea}". Focus on understanding customer pain points, willingness to pay, and market demand. Return as JSON array.`,
       landingPage: `Create compelling landing page content for the startup idea: "${idea}". Include headline, subheading, and call-to-action. Return as JSON object with keys: headline, subheading, callToAction.`,
@@ -111,10 +120,8 @@ The JSON object should have these exact keys:
     try {
       if (this.geminiAPI) {
         return await this.callGeminiAPI(prompt);
-      } else if (this.openaiAPIKey) {
-        return await this.callOpenAIAPI(prompt);
       } else {
-        console.log('No AI API key configured, returning mock validation data');
+        console.log('No Gemini API key configured, returning mock validation data');
         return this.getMockValidationContent(idea, validationType);
       }
     } catch (error) {
@@ -128,7 +135,7 @@ The JSON object should have these exact keys:
     const ideaLower = idea.toLowerCase();
     
     // Generate contextual mock data based on the idea
-    let problemStatement, customerPersona, leanCanvas, pitchDeckSummary, validation;
+    let problemStatement, customerPersona, leanCanvas, pitchDeckSummary, validation, marketResearch;
     
     if (ideaLower.includes('food') || ideaLower.includes('restaurant') || ideaLower.includes('meal')) {
       problemStatement = "Students struggle to find affordable, healthy food options near campus, often settling for expensive fast food or unhealthy choices due to limited time and budget constraints.";
@@ -182,29 +189,49 @@ The JSON object should have these exact keys:
         }
       };
 
-      // marketResearch and financialProjections removed to match new prompt structure
+      marketResearch = {
+        marketSize: "$2.3B campus food market with 20M+ college students",
+        competitors: [
+          "Grubhub",
+          "Uber Eats", 
+          "DoorDash",
+          "Campus dining services",
+          "Local restaurant apps"
+        ],
+        trends: [
+          "Growing demand for healthy food options",
+          "Mobile ordering becoming standard",
+          "Student budget constraints driving innovation",
+          "Sustainability focus in food choices",
+          "Personalized nutrition recommendations"
+        ]
+      };
     } else {
-      // Generic mock data for other ideas
+      // Generate more contextual mock data based on the idea
+      const ideaWords = idea.toLowerCase().split(' ');
+      const industry = this.detectIndustry(ideaWords);
+      const targetAge = this.detectTargetAge(ideaWords);
+      
       problemStatement = `The current market lacks an effective solution for "${idea}", leaving users frustrated with existing alternatives that are either too expensive, complex, or don't address the core needs.`;
       
       customerPersona = {
-        name: "Alex Johnson",
-        age: "25",
-        occupation: "Young Professional",
-        painPoints: ["Time constraints", "High costs", "Complex solutions", "Poor user experience"],
-        goals: ["Save time", "Reduce costs", "Simplify processes", "Improve efficiency"]
+        name: this.generatePersonaName(industry),
+        age: targetAge,
+        occupation: this.generateOccupation(industry, targetAge),
+        painPoints: this.generatePainPoints(ideaWords, industry),
+        goals: this.generateGoals(ideaWords, industry)
       };
       
       leanCanvas = {
-        keyPartners: ["Technology providers", "Industry experts", "Distribution partners", "Strategic alliances"],
-        keyActivities: ["Product development", "User acquisition", "Customer support", "Market research"],
-        valuePropositions: ["Simplified solution", "Cost-effective approach", "Better user experience", "Time-saving features"],
-        customerRelationships: ["Self-service platform", "Community support", "Personalized experience", "Mobile-first design"],
-        customerSegments: ["Young professionals", "Tech-savvy users", "Cost-conscious consumers", "Early adopters"],
-        keyResources: ["Development team", "Technology platform", "User data", "Brand recognition"],
-        channels: ["Mobile app", "Web platform", "Social media", "Partnerships"],
-        costStructure: ["Development costs", "Marketing expenses", "Operational overhead", "Technology infrastructure"],
-        revenueStreams: ["Subscription fees", "Transaction fees", "Premium features", "Advertising revenue"]
+        keyPartners: this.generateKeyPartners(industry),
+        keyActivities: this.generateKeyActivities(industry),
+        valuePropositions: this.generateValuePropositions(industry),
+        customerRelationships: this.generateCustomerRelationships(industry),
+        customerSegments: this.generateCustomerSegments(industry, targetAge),
+        keyResources: this.generateKeyResources(industry),
+        channels: this.generateChannels(industry),
+        costStructure: this.generateCostStructure(industry),
+        revenueStreams: this.generateRevenueStreams(industry)
       };
       
       pitchDeckSummary = {
@@ -289,6 +316,212 @@ The JSON object should have these exact keys:
     }
     
     return {};
+  }
+
+  // Helper methods for dynamic mock data generation
+  detectIndustry(ideaWords) {
+    const industryKeywords = {
+      'healthcare': ['health', 'medical', 'doctor', 'patient', 'hospital', 'clinic', 'wellness', 'fitness'],
+      'education': ['education', 'school', 'student', 'teacher', 'learning', 'course', 'university', 'college'],
+      'finance': ['finance', 'money', 'bank', 'payment', 'investment', 'trading', 'crypto', 'fintech'],
+      'ecommerce': ['shop', 'buy', 'sell', 'marketplace', 'retail', 'product', 'store', 'commerce'],
+      'technology': ['app', 'software', 'tech', 'ai', 'data', 'cloud', 'mobile', 'web', 'platform'],
+      'transportation': ['transport', 'delivery', 'ride', 'travel', 'logistics', 'shipping', 'uber', 'taxi'],
+      'entertainment': ['entertainment', 'game', 'music', 'video', 'streaming', 'media', 'content', 'social']
+    };
+
+    for (const [industry, keywords] of Object.entries(industryKeywords)) {
+      if (keywords.some(keyword => ideaWords.some(word => word.includes(keyword)))) {
+        return industry;
+      }
+    }
+    return 'technology';
+  }
+
+  detectTargetAge(ideaWords) {
+    if (ideaWords.some(word => ['student', 'college', 'university', 'school'].includes(word))) {
+      return "22";
+    } else if (ideaWords.some(word => ['senior', 'elderly', 'retirement'].includes(word))) {
+      return "65";
+    } else if (ideaWords.some(word => ['child', 'kid', 'baby', 'toddler'].includes(word))) {
+      return "8";
+    }
+    return "28";
+  }
+
+  generatePersonaName(industry) {
+    const names = {
+      'healthcare': ['Dr. Sarah Martinez', 'Dr. Michael Chen', 'Dr. Emily Rodriguez'],
+      'education': ['Professor Alex Johnson', 'Dr. Lisa Wang', 'Dr. David Kim'],
+      'finance': ['James Thompson', 'Maria Garcia', 'Robert Wilson'],
+      'ecommerce': ['Jennifer Lee', 'Chris Anderson', 'Amanda Taylor'],
+      'technology': ['Alex Chen', 'Sarah Johnson', 'Michael Rodriguez'],
+      'transportation': ['David Martinez', 'Lisa Chen', 'Robert Garcia'],
+      'entertainment': ['Emma Wilson', 'Jake Thompson', 'Sophia Lee']
+    };
+    
+    const industryNames = names[industry] || names['technology'];
+    return industryNames[Math.floor(Math.random() * industryNames.length)];
+  }
+
+  generateOccupation(industry, age) {
+    const occupations = {
+      'healthcare': ['Medical Professional', 'Healthcare Administrator', 'Nurse Practitioner'],
+      'education': ['Educator', 'Academic Researcher', 'Curriculum Developer'],
+      'finance': ['Financial Analyst', 'Investment Advisor', 'Banking Professional'],
+      'ecommerce': ['E-commerce Manager', 'Digital Marketing Specialist', 'Retail Operations Manager'],
+      'technology': ['Software Engineer', 'Product Manager', 'Data Scientist'],
+      'transportation': ['Logistics Coordinator', 'Transportation Manager', 'Supply Chain Analyst'],
+      'entertainment': ['Content Creator', 'Media Producer', 'Entertainment Professional']
+    };
+    
+    const industryOccupations = occupations[industry] || occupations['technology'];
+    return industryOccupations[Math.floor(Math.random() * industryOccupations.length)];
+  }
+
+  generatePainPoints(ideaWords, industry) {
+    const painPoints = {
+      'healthcare': ['Long wait times', 'High medical costs', 'Complex insurance processes', 'Limited access to specialists'],
+      'education': ['Expensive tuition', 'Outdated curriculum', 'Limited practical experience', 'Poor student engagement'],
+      'finance': ['High fees', 'Complex processes', 'Limited transparency', 'Poor customer service'],
+      'ecommerce': ['High shipping costs', 'Limited product variety', 'Poor return policies', 'Slow delivery'],
+      'technology': ['Complex interfaces', 'High subscription costs', 'Poor customer support', 'Data security concerns'],
+      'transportation': ['High costs', 'Unreliable service', 'Limited availability', 'Poor user experience'],
+      'entertainment': ['High subscription costs', 'Limited content variety', 'Poor streaming quality', 'Complex navigation']
+    };
+    
+    return painPoints[industry] || painPoints['technology'];
+  }
+
+  generateGoals(ideaWords, industry) {
+    const goals = {
+      'healthcare': ['Improve health outcomes', 'Reduce medical costs', 'Increase accessibility', 'Enhance patient experience'],
+      'education': ['Improve learning outcomes', 'Reduce educational costs', 'Increase accessibility', 'Enhance student engagement'],
+      'finance': ['Save money', 'Increase financial security', 'Simplify financial management', 'Improve investment returns'],
+      'ecommerce': ['Save money on purchases', 'Find better products', 'Simplify shopping experience', 'Get faster delivery'],
+      'technology': ['Increase productivity', 'Simplify workflows', 'Reduce costs', 'Improve user experience'],
+      'transportation': ['Save time on travel', 'Reduce transportation costs', 'Improve reliability', 'Enhance convenience'],
+      'entertainment': ['Access better content', 'Reduce entertainment costs', 'Improve streaming quality', 'Simplify content discovery']
+    };
+    
+    return goals[industry] || goals['technology'];
+  }
+
+  generateKeyPartners(industry) {
+    const partners = {
+      'healthcare': ['Medical institutions', 'Healthcare providers', 'Insurance companies', 'Medical device manufacturers'],
+      'education': ['Educational institutions', 'Content providers', 'Technology partners', 'Accreditation bodies'],
+      'finance': ['Banks', 'Payment processors', 'Financial institutions', 'Regulatory bodies'],
+      'ecommerce': ['Suppliers', 'Logistics partners', 'Payment gateways', 'Marketing agencies'],
+      'technology': ['Cloud providers', 'API partners', 'Development tools', 'Security providers'],
+      'transportation': ['Vehicle manufacturers', 'Fuel suppliers', 'Insurance providers', 'Maintenance partners'],
+      'entertainment': ['Content creators', 'Streaming platforms', 'Media companies', 'Distribution partners']
+    };
+    return partners[industry] || partners['technology'];
+  }
+
+  generateKeyActivities(industry) {
+    const activities = {
+      'healthcare': ['Patient care delivery', 'Medical research', 'Health monitoring', 'Treatment optimization'],
+      'education': ['Curriculum development', 'Student assessment', 'Learning analytics', 'Content creation'],
+      'finance': ['Risk assessment', 'Transaction processing', 'Compliance monitoring', 'Customer onboarding'],
+      'ecommerce': ['Inventory management', 'Order fulfillment', 'Customer service', 'Market analysis'],
+      'technology': ['Software development', 'User experience design', 'Data analysis', 'System maintenance'],
+      'transportation': ['Route optimization', 'Fleet management', 'Customer service', 'Safety monitoring'],
+      'entertainment': ['Content production', 'User engagement', 'Platform optimization', 'Content curation']
+    };
+    return activities[industry] || activities['technology'];
+  }
+
+  generateValuePropositions(industry) {
+    const propositions = {
+      'healthcare': ['Improved patient outcomes', 'Reduced healthcare costs', 'Enhanced accessibility', 'Better care coordination'],
+      'education': ['Personalized learning', 'Improved outcomes', 'Cost-effective education', 'Flexible learning options'],
+      'finance': ['Lower fees', 'Better returns', 'Simplified processes', 'Enhanced security'],
+      'ecommerce': ['Better prices', 'Faster delivery', 'Wider selection', 'Superior customer service'],
+      'technology': ['Increased efficiency', 'Cost reduction', 'Better user experience', 'Scalable solutions'],
+      'transportation': ['Reliable service', 'Cost savings', 'Convenience', 'Safety assurance'],
+      'entertainment': ['High-quality content', 'Affordable pricing', 'Seamless experience', 'Personalized recommendations']
+    };
+    return propositions[industry] || propositions['technology'];
+  }
+
+  generateCustomerRelationships(industry) {
+    const relationships = {
+      'healthcare': ['Personalized care', '24/7 support', 'Health monitoring', 'Community engagement'],
+      'education': ['Mentorship programs', 'Peer learning', 'Progress tracking', 'Support communities'],
+      'finance': ['Personalized advice', 'Automated services', 'Customer support', 'Educational resources'],
+      'ecommerce': ['Personalized recommendations', 'Customer support', 'Loyalty programs', 'Community features'],
+      'technology': ['Self-service platform', 'Community support', 'Personalized experience', 'Proactive assistance'],
+      'transportation': ['Reliable service', 'Customer support', 'Loyalty programs', 'Real-time updates'],
+      'entertainment': ['Personalized content', 'Community features', 'Customer support', 'Social sharing']
+    };
+    return relationships[industry] || relationships['technology'];
+  }
+
+  generateCustomerSegments(industry, age) {
+    const segments = {
+      'healthcare': ['Patients', 'Healthcare providers', 'Insurance companies', 'Medical institutions'],
+      'education': ['Students', 'Educators', 'Educational institutions', 'Parents'],
+      'finance': ['Individual investors', 'Small businesses', 'Financial institutions', 'Retail customers'],
+      'ecommerce': ['Online shoppers', 'Small businesses', 'Retailers', 'Consumers'],
+      'technology': ['Tech professionals', 'Small businesses', 'Enterprises', 'Developers'],
+      'transportation': ['Commuters', 'Business travelers', 'Logistics companies', 'Individual users'],
+      'entertainment': ['Content consumers', 'Content creators', 'Advertisers', 'Streaming enthusiasts']
+    };
+    return segments[industry] || segments['technology'];
+  }
+
+  generateKeyResources(industry) {
+    const resources = {
+      'healthcare': ['Medical expertise', 'Technology platform', 'Patient data', 'Regulatory compliance'],
+      'education': ['Educational content', 'Learning platform', 'Student data', 'Accreditation'],
+      'finance': ['Financial expertise', 'Technology platform', 'Customer data', 'Regulatory compliance'],
+      'ecommerce': ['Product inventory', 'Technology platform', 'Customer data', 'Supply chain'],
+      'technology': ['Development team', 'Technology platform', 'User data', 'Intellectual property'],
+      'transportation': ['Fleet vehicles', 'Technology platform', 'Customer data', 'Operational expertise'],
+      'entertainment': ['Content library', 'Streaming platform', 'User data', 'Content partnerships']
+    };
+    return resources[industry] || resources['technology'];
+  }
+
+  generateChannels(industry) {
+    const channels = {
+      'healthcare': ['Medical platforms', 'Healthcare networks', 'Mobile apps', 'Direct partnerships'],
+      'education': ['Learning platforms', 'Educational institutions', 'Mobile apps', 'Online communities'],
+      'finance': ['Banking platforms', 'Financial networks', 'Mobile apps', 'Partner channels'],
+      'ecommerce': ['Online marketplace', 'Mobile apps', 'Social media', 'Partner networks'],
+      'technology': ['Web platform', 'Mobile apps', 'API integrations', 'Partner channels'],
+      'transportation': ['Mobile apps', 'Web platform', 'Partner networks', 'Direct bookings'],
+      'entertainment': ['Streaming platforms', 'Mobile apps', 'Social media', 'Content networks']
+    };
+    return channels[industry] || channels['technology'];
+  }
+
+  generateCostStructure(industry) {
+    const costs = {
+      'healthcare': ['Medical staff', 'Technology infrastructure', 'Regulatory compliance', 'Insurance'],
+      'education': ['Content development', 'Technology platform', 'Instructor costs', 'Accreditation'],
+      'finance': ['Technology infrastructure', 'Compliance costs', 'Security measures', 'Staff costs'],
+      'ecommerce': ['Inventory costs', 'Technology platform', 'Marketing expenses', 'Logistics'],
+      'technology': ['Development costs', 'Technology infrastructure', 'Marketing expenses', 'Operational costs'],
+      'transportation': ['Vehicle costs', 'Fuel expenses', 'Maintenance', 'Insurance'],
+      'entertainment': ['Content licensing', 'Technology platform', 'Marketing expenses', 'Operational costs']
+    };
+    return costs[industry] || costs['technology'];
+  }
+
+  generateRevenueStreams(industry) {
+    const revenue = {
+      'healthcare': ['Service fees', 'Subscription plans', 'Insurance partnerships', 'Premium features'],
+      'education': ['Course fees', 'Subscription plans', 'Certification fees', 'Corporate training'],
+      'finance': ['Transaction fees', 'Subscription plans', 'Investment fees', 'Premium services'],
+      'ecommerce': ['Commission fees', 'Subscription plans', 'Advertising revenue', 'Premium listings'],
+      'technology': ['Subscription fees', 'Transaction fees', 'Premium features', 'Enterprise licenses'],
+      'transportation': ['Service fees', 'Subscription plans', 'Premium services', 'Corporate partnerships'],
+      'entertainment': ['Subscription fees', 'Advertising revenue', 'Premium content', 'Transaction fees']
+    };
+    return revenue[industry] || revenue['technology'];
   }
 }
 
