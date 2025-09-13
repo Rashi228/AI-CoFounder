@@ -44,11 +44,11 @@ const Navbar = () => {
   };
 
   return (
-    <nav className="navbar navbar-expand-lg navbar-light bg-white shadow-sm">
+    <nav className="navbar navbar-expand-lg navbar-light bg-white shadow-sm border-bottom">
       <div className="container">
-        <Link className="navbar-brand" to="/">
-          <i className="fas fa-rocket me-2"></i>
-          ACM Co-Founder
+        <Link className="navbar-brand fw-bold text-primary" to="/">
+          <i className="fas fa-robot me-2 text-gradient"></i>
+          <span className="brand-text">AI-CoFounder</span>
         </Link>
         
         <button

@@ -20,11 +20,11 @@ const Home = () => {
           <div className="row align-items-center">
             <div className="col-lg-6">
               <h1 className="display-4 fw-bold mb-4">
-                Transform Your <span className="text-gradient">Startup Ideas</span> into Reality
+                <span className="text-gradient">AI-CoFounder</span> - Your Intelligent Startup Partner
               </h1>
               <p className="lead mb-4">
-                AI-powered platform that helps students refine ideas, conduct market research, 
-                find co-founders, and create investment-ready pitch decks.
+                The smartest platform for entrepreneurs. Transform your ideas into investment-ready ventures 
+                with AI-powered tools, intelligent co-founder matching, and comprehensive business development.
               </p>
               <div className="d-flex gap-3">
                 {user ? (
@@ -41,8 +41,8 @@ const Home = () => {
                 ) : (
                   <>
                     <Link to="/get-started" className="btn btn-primary btn-lg">
-                      <i className="fas fa-rocket me-2"></i>
-                      Get Started Free
+                      <i className="fas fa-robot me-2"></i>
+                      Start with AI
                     </Link>
                     <Link to="/login" className="btn btn-outline-light btn-lg">
                       <i className="fas fa-sign-in-alt me-2"></i>
@@ -108,10 +108,10 @@ const Home = () => {
                   <div className="mb-3">
                     <i className="fas fa-users fa-3x text-warning"></i>
                   </div>
-                  <h5 className="card-title">Co-Founder Matching</h5>
+                  <h5 className="card-title">AI Co-Founder Matching</h5>
                   <p className="card-text">
-                    Find the perfect co-founder based on skills, interests, and complementary 
-                    expertise using our matching algorithm.
+                    Our intelligent algorithm finds the perfect co-founder based on skills, interests, 
+                    and complementary expertise to accelerate your startup success.
                   </p>
                 </div>
               </div>
@@ -218,7 +218,7 @@ const Home = () => {
                   <div className="step-number">4</div>
                   <div>
                     <h5>Launch & Scale</h5>
-                    <p className="text-muted">Find co-founders and pitch to investors</p>
+                    <p className="text-muted">Connect with AI-matched co-founders and pitch to investors</p>
                   </div>
                 </div>
               </div>

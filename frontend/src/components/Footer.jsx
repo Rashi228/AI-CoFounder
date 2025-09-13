@@ -8,12 +8,12 @@ const Footer = () => {
         <div className="row">
           <div className="col-lg-4 mb-4">
             <h5 className="text-white mb-3">
-              <i className="fas fa-rocket me-2"></i>
-              ACM Co-Founder
+              <i className="fas fa-robot me-2 text-gradient"></i>
+              AI-CoFounder
             </h5>
             <p className="text-light">
-              Empowering students to transform their ideas into investment-ready startups 
-              with AI-powered mentorship and tools.
+              The intelligent platform that transforms startup ideas into investment-ready ventures 
+              with AI-powered tools and smart co-founder matching.
             </p>
             <div className="d-flex gap-3">
               <a href="#" className="text-light">
@@ -74,7 +74,7 @@ const Footer = () => {
         <div className="row align-items-center">
           <div className="col-md-6">
             <p className="text-light mb-0">
-              © 2024 ACM Co-Founder Platform. All rights reserved.
+              © 2025 AI-CoFounder. All rights reserved.
             </p>
           </div>
           <div className="col-md-6 text-md-end">
