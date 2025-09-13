@@ -1,10 +1,18 @@
 // API Service for connecting frontend to backend
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001/api';
 
+// Debug: Log the API URL being used
+console.log('🔗 API Service Configuration:');
+console.log('  - Environment Variable:', import.meta.env.VITE_API_BASE_URL);
+console.log('  - Final API URL:', API_BASE_URL);
+
 class ApiService {
   async request(endpoint, options = {}) {
     const url = `${API_BASE_URL}${endpoint}`;
     const token = localStorage.getItem('token');
+    
+    // Debug: Log the request being made
+    console.log(`🌐 Making API request to: ${url}`);
     
     const config = {
       headers: {

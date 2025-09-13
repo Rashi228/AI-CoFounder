@@ -40,8 +40,17 @@ const limiter = rateLimit({
 app.use(limiter);
 
 // CORS configuration
+const allowedOrigins = [
+  'http://localhost:3000',
+  'https://ai-cofounder-frontend.onrender.com',
+  process.env.FRONTEND_URL
+].filter(Boolean); // Remove any undefined values
+
+console.log('🌐 CORS Configuration:');
+console.log('  - Allowed Origins:', allowedOrigins);
+
 app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+  origin: allowedOrigins,
   credentials: true
 }));
 
